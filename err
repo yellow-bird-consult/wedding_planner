@@ -1,0 +1,3 @@
+   Compiling wedp v0.1.0 (/Users/maxwellflitton/Documents/github/patient_api/wedding_planner)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.48s
+     Running `target/debug/wedp what up dawg`
