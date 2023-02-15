@@ -1,0 +1,13 @@
+attendees:
+  - name: John Doe
+    url: http://example.com/john-doe
+    branch: development
+    local_run_config_file: ../sandbox/local_service_configs/jane-doe.yml
+    remote_run_config_file: ../sandbox/remote_service_configs/jane-doe.yml
+  - name: Jane Doe
+    url: http://example.com/jane-doe
+    branch: development
+    local_run_config_file: ../sandbox/local_service_configs/jane-doe.yml
+    remote_run_config_file: ../sandbox/remote_service_configs/jane-doe.yml
+
+venue: ../sandbox/services/
