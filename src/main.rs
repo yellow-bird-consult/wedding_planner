@@ -2,15 +2,15 @@
 //! 
 //! # Uses
 //! We can create the venue with the following command: 
-//! ```
+//! ```bash
 //! wedp setup -f tests/live_test.yml
 //! ```
 //! We can install the dependencies with the following command: 
-//! ```
+//! ```bash
 //! wedp install -f tests/live_test.yml
 //! ```
 //! We can run the dependencies with the following command: 
-//! ```
+//! ```bash
 //! wedp run -f tests/live_test.yml
 //! ```
 use clap::{App, Arg};
