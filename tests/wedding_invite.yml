@@ -1,0 +1,9 @@
+build_root: "."
+build_files:
+  x86_64: build/Dockerfile.x86_64
+  aarch64: build/Dockerfile.aarch64
+init_build:
+  build_files:
+    x86_64: database/build/Dockerfile.init
+    aarch64: database/build/Dockerfile.init.arch
+  build_root: database
