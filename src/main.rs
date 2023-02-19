@@ -1,4 +1,18 @@
 //! This tool is used for installing the  dependencies. 
+//! 
+//! # Uses
+//! We can create the venue with the following command: 
+//! ```
+//! wedp setup -f tests/live_test.yml
+//! ```
+//! We can install the dependencies with the following command: 
+//! ```
+//! wedp install -f tests/live_test.yml
+//! ```
+//! We can run the dependencies with the following command: 
+//! ```
+//! wedp run -f tests/live_test.yml
+//! ```
 use clap::{App, Arg};
 
 use std::{env, path::Path};
