@@ -1,4 +1,8 @@
 //! A dependency is the data around a github repo that is going to be pulled as a dependency.
+//! For the dependency we can perform the following tasks:
+//! - clone the Github repository
+//! - checkout a branch for the Github repository
+//! - Gets the wedding invite data from the Github repository
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::path::Path;

@@ -1,3 +1,4 @@
+//! This tool is used for installing the  dependencies. 
 use clap::{App, Arg};
 
 use std::{env, path::Path};
@@ -6,6 +7,9 @@ mod cpu_data;
 mod dependency;
 mod seating_plan;
 mod wedding_invite;
+mod runner;
+
+use runner::Runner;
 
 
 fn main() {
@@ -41,74 +45,33 @@ fn main() {
     match command.as_ref() {
 
         "build" => {
-            println!("{} supported", command);
-            let seating_plan = seating_plan::SeatingPlan::from_file(full_file_path);
-            let mut command = "docker-compose ".to_owned();
-            match seating_plan {
-                Ok(seating_plan) => {
-                    let venue = seating_plan.venue;
-
-                    for dependency in &seating_plan.attendees {
-                        dependency.clone_github_repo(&venue);
-                        dependency.checkout_branch(&venue);
-                        let wedding_invite = dependency.get_wedding_invite(&venue).unwrap();
-                        wedding_invite.prepare_build_file(&venue, &dependency.name);
-                        wedding_invite.prepare_init_build_file(&venue, &dependency.name);
-                        let files = &wedding_invite.get_docker_compose_files(&venue, &dependency.name);
-                        command.push_str(files);
-                    }
-                },
-                Err(error) => {
-                    println!("{}", error);
-                }
+            match Runner::new(full_file_path) {
+                Ok(runner) => runner.build_dependencies(),
+                Err(error) => println!("{}", error)
             }
-        
         },
         "run" => {
-            println!("running the docker-compose");
-            let seating_plan = seating_plan::SeatingPlan::from_file(full_file_path);
-            let mut command = "docker-compose ".to_owned();
-            match seating_plan {
-                Ok(seating_plan) => {
-                    let venue = seating_plan.venue;
-
-                    for dependency in &seating_plan.attendees {
-                        let wedding_invite = dependency.get_wedding_invite(&venue).unwrap();
-                        let files = &wedding_invite.get_docker_compose_files(&venue, &dependency.name);
-                        command.push_str(files);
-                    }
-                    command.push_str("up");
-                    println!("{}", command);
-                    let _ = std::process::Command::new("bash")
-                                                    .arg("-c")
-                                                    .arg(command)
-                                                    .output()
-                                                    .expect("failed to run");
-                },
-                Err(error) => {
-                    println!("{}", error);
-                }
+            match Runner::new(full_file_path) {
+                Ok(runner) => runner.run_dependencies(),
+                Err(error) => println!("{}", error)
+            }
+        },
+        "install" => {
+            match Runner::new(full_file_path) {
+                Ok(runner) => runner.install_dependencies(),
+                Err(error) => println!("{}", error)
+            }
+        },
+        "setup" => {
+            match Runner::new(full_file_path) {
+                Ok(runner) => runner.create_venue(),
+                Err(error) => println!("{}", error)
             }
         }
         _ => {
             println!("{} not supported", command);
         }
-
-    };
-
-    // let omit_newline = matches.is_present("omit_newline");
-
-
-
-    // let cwd = env::current_dir().unwrap().to_str().unwrap().to_owned();
-    // println!("Current directory: {}", cwd);
-
-    // let mut ending = "\n";
-    // if omit_newline {
-    //     ending = "";
-    // }
-
-    // println!("{}{}", text.join(" "), ending);
+    }
 }
 
 

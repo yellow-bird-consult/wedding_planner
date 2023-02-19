@@ -1,5 +1,22 @@
-//! Wedding invites are ```yml``` files that sit in the root of a github repository that is going to be pulled as a dependency. 
-//! TODO -> put in an example file in this documentation when the complete program is working.
+//! Wedding invites are ```yml``` files that sit in the root of a github repository that is going to be pulled 
+//! as a dependency. 
+//! ## Example Seating Plan File
+//! Below is an example yml file for the seating plan that should be in the root of the Github repository 
+//! of the dependency:
+//! ```yaml
+//! build_root: "."
+//! runner_files:
+//!   - runner_files/base.yml
+//!   - runner_files/database.yml
+//! build_files:
+//!   x86_64: builds/Dockerfile.x86_64
+//!   aarch64: builds/Dockerfile.aarch64
+//! init_build:
+//!   build_files:
+//!     x86_64: builds/Dockerfile.x86_64
+//!     aarch64: builds/Dockerfile.aarch64
+//!   build_root: database
+//! ```
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::fs::{File, copy};
@@ -104,51 +121,6 @@ impl WeddingInvite {
         }
         files_string
     }
-    // /// Builds the docker image for the project.
-    // ///
-    // /// # Arguments
-    // /// * `repo_local_path` - The path to the local repository
-    // /// * `image_name` - The name of the image to build
-    // pub fn build_docker_image(self, repo_local_path: String, image_name: &String) {
-    //     self.prepare_build_file(repo_local_path.clone());
-    //
-    //     let build_root_path = Path::new(&repo_local_path).join(&self.build_root);
-    //
-    //     let mut build_command = std::process::Command::new("docker");
-    //     build_command.arg("build");
-    //     build_command.arg("-t");
-    //     build_command.arg(image_name);
-    //     build_command.arg(".");
-    //     build_command.current_dir(build_root_path);
-    //     let output = build_command.output().unwrap();
-    //     println!("Output: {}", String::from_utf8(output.stdout).unwrap());
-    //     println!("Error: {}", String::from_utf8(output.stderr).unwrap());
-    // }
-    //
-    // /// Builds the docker image for the init pod.
-    // ///
-    // /// # Arguments
-    // /// * `repo_local_path` - The path to the local repository
-    // /// * `image_name` - The name of the image to build
-    // pub fn build_init_docker_image(self, repo_local_path: String, image_name: &String) {
-    //     match &self.init_build {
-    //         Some(init_build) => {
-    //             self.prepare_init_build_file(repo_local_path.clone());
-    //             let build_root_path = Path::new(&repo_local_path).join(&init_build.build_root);
-    //
-    //             let mut build_command = std::process::Command::new("docker");
-    //             build_command.arg("build");
-    //             build_command.arg("-t");
-    //             build_command.arg(image_name);
-    //             build_command.arg(".");
-    //             build_command.current_dir(build_root_path);
-    //             let output = build_command.output().unwrap();
-    //             println!("Output: {}", String::from_utf8(output.stdout).unwrap());
-    //             println!("Error: {}", String::from_utf8(output.stderr).unwrap());
-    //         },
-    //         None => println!("No init build data")
-    //     };
-    // }
 }
 
 

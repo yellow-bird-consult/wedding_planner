@@ -1,5 +1,21 @@
 //! A seating plan is a ```yml``` file that defines the dependencies that the program needs to run all of the dependencies for a local run. 
-//! TODO -> put in an example yml file for what the file looks like when the program is finished. 
+//! ## Example Seating Plan File
+//! Below is an example yml file for the seating plan:
+//! ```yaml
+//!attendees:
+//!  - name: John Doe
+//!    url: http://example.com/john-doe
+//!    branch: development
+//!    local_run_config_file: ../sandbox/local_service_configs/jane-doe.yml
+//!    remote_run_config_file: ../sandbox/remote_service_configs/jane-doe.yml
+//!  - name: Jane Doe
+//!    url: http://example.com/jane-doe
+//!    branch: development
+//!    local_run_config_file: ../sandbox/local_service_configs/jane-doe.yml
+//!    remote_run_config_file: ../sandbox/remote_service_configs/jane-doe.yml
+//!
+//!venue: ../sandbox/services/
+//! ```
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::fs::File;
@@ -41,7 +57,8 @@ impl SeatingPlan {
         Ok(seating_plan)
     }
 
-    pub fn create_venue(self) {
+    /// Creates a venue directory if the venue is not already present. 
+    pub fn create_venue(&self) {
         println!("Creating venue directory");
         let venue_path = Path::new(&self.venue);
         if venue_path.exists() {
@@ -78,11 +95,5 @@ mod tests {
         wedding_invite.prepare_build_file(&venue, &dependency.name);
         wedding_invite.prepare_init_build_file(&venue, &dependency.name);
         println!("{:?}", wedding_invite.get_docker_compose_files(&venue, &dependency.name));
-        // &seating_plan.attendees[0].clone_github_repo(seating_plan.venue);
-        // let expected_seating_plan = SeatingPlan {
-        //     attendees: vec![
-        //         Dependency {
-        //             name: "wedding_invite".to_string(),
-        //             url: "
     }
 }

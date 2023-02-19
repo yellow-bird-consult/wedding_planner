@@ -1,3 +1,4 @@
+//! Gets the data about the CPU when running the program. 
 use std::env::consts::ARCH;
 
 
