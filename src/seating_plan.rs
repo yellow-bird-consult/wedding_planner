@@ -1,3 +1,5 @@
+//! A seating plan is a ```yml``` file that defines the dependencies that the program needs to run all of the dependencies for a local run. 
+//! TODO -> put in an example yml file for what the file looks like when the program is finished. 
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::fs::File;
@@ -56,3 +58,31 @@ impl SeatingPlan {
     }
 }
 
+
+// below are tests for the seating_plan.rs file
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_file() {
+        let seating_plan = SeatingPlan::from_file("tests/live_test.yml".to_string()).unwrap();
+        println!("{:?}", seating_plan);
+        let venue = seating_plan.venue;
+        let dependency = &seating_plan.attendees[0];
+        dependency.clone_github_repo(&venue);
+        dependency.checkout_branch(&venue);
+        let wedding_invite = dependency.get_wedding_invite(&venue).unwrap();
+
+        println!("{:?}", wedding_invite);
+        wedding_invite.prepare_build_file(&venue, &dependency.name);
+        wedding_invite.prepare_init_build_file(&venue, &dependency.name);
+        println!("{:?}", wedding_invite.get_docker_compose_files(&venue, &dependency.name));
+        // &seating_plan.attendees[0].clone_github_repo(seating_plan.venue);
+        // let expected_seating_plan = SeatingPlan {
+        //     attendees: vec![
+        //         Dependency {
+        //             name: "wedding_invite".to_string(),
+        //             url: "
+    }
+}

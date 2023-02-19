@@ -1,3 +1,5 @@
+//! Wedding invites are ```yml``` files that sit in the root of a github repository that is going to be pulled as a dependency. 
+//! TODO -> put in an example file in this documentation when the complete program is working.
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::fs::{File, copy};
@@ -24,11 +26,13 @@ pub struct InitBuild {
 /// * `build_root` - The root of the build (where the Dockerfile needs to be to run)
 /// * `package_file` - The location of the docker-compose file to run the build
 /// * `init_build` - The location of the data needed for an init pod build
+/// * `runner_files` - The location of the docker-compose files to run the build
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WeddingInvite {
     pub build_files: Option<HashMap<String, String>>,
     pub build_root: String,
-    pub init_build: Option<InitBuild>
+    pub init_build: Option<InitBuild>,
+    pub runner_files: Vec<String>
 }
 
 
@@ -57,15 +61,16 @@ impl WeddingInvite {
     ///
     /// # Arguments
     /// * `repo_local_path` - The path to the local repository
-    pub fn prepare_build_file(&self, repo_local_path: String) {
+    pub fn prepare_build_file(&self, venue_path: &String, name: &String) {
+        let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
         let cpu_type = super::cpu_data::CpuType::get().to_string();
         let files_map = self.build_files.as_ref().unwrap();
         let build_file_path = match files_map.get(&cpu_type){
             Some(p) => p,
             None => panic!("No build file for CPU type: {}", &cpu_type)
         };
-        let build_path = Path::new(&repo_local_path).join(build_file_path);
-        let build_root_path = Path::new(&repo_local_path).join(&self.build_root)
+        let build_path = Path::new(&invite_path).join(build_file_path);
+        let build_root_path = Path::new(&invite_path).join(&self.build_root)
                                                                     .join("Dockerfile");
         copy(build_path, build_root_path).unwrap();
     }
@@ -74,18 +79,31 @@ impl WeddingInvite {
     ///
     /// # Arguments
     /// * `repo_local_path` - The path to the local repository
-    pub fn prepare_init_build_file(&self, repo_local_path: String) {
+    pub fn prepare_init_build_file(&self, venue_path: &String, name: &String) {
+        let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
         let cpu_type = super::cpu_data::CpuType::get().to_string();
         let build_file_path = match self.init_build.as_ref().unwrap().build_files.get(&cpu_type){
             Some(p) => p,
             None => panic!("No build file for CPU type: {}", &cpu_type)
         };
-        let build_path = Path::new(&repo_local_path).join(build_file_path);
-        let build_root_path = Path::new(&repo_local_path).join(&self.init_build.as_ref().unwrap().build_root)
+        let build_path = Path::new(&invite_path).join(build_file_path);
+        let build_root_path = Path::new(&invite_path).join(&self.init_build.as_ref().unwrap().build_root)
                                                                     .join("Dockerfile");
         copy(build_path, build_root_path).unwrap();
     }
 
+    /// Gets the docker-compose files command string.
+    /// 
+    /// # Returns
+    /// * `String` - The docker-compose files command string
+    pub fn get_docker_compose_files(&self, venue_path: &String, name: &String) -> String {
+        let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
+        let mut files_string = String::new();
+        for file in &self.runner_files {
+            files_string.push_str(&format!("-f {}/{} ", &invite_path, file));
+        }
+        files_string
+    }
     // /// Builds the docker image for the project.
     // ///
     // /// # Arguments
@@ -151,7 +169,7 @@ mod local_data_tests {
 
         let ld = WeddingInvite::from_file("./tests/wedding_invite.yml".to_string()).unwrap();
         assert_eq!(ld.build_files, Some(normal_builds));
-        // assert_eq!(ld.arch_build_location, Some("build/Dockerfile.arch".to_string()));
+
         assert_eq!(ld.build_root, ".");
         assert_eq!(ld.init_build, Some(InitBuild {
             build_files: init_builds,
