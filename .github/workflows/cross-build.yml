@@ -21,6 +21,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source $HOME/.cargo/env
           cargo install cross
+          docker pull rustembedded/cross:latest
 
       - name: Install M1 toolchain
         if: runner.os == 'macos'
