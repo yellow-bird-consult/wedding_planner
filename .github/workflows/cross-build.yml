@@ -11,8 +11,7 @@ on:
 jobs:
   build:
     name: Cross-Compile and Release
-    # runs-on: ubuntu-latest
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
