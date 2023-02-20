@@ -1,0 +1,7 @@
+
+
+[target.x86_64-apple-darwin]
+image = "rustembedded/cross:osx-x86_64-0.2.3"
+
+[target.aarch64-apple-darwin]
+image = "rustembedded/cross:aarch64-unknown-linux-musl-0.2.2"
