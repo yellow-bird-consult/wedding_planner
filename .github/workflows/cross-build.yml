@@ -1,4 +1,4 @@
-name: Rust Build and Release
+name: Build and Release
 
 on:
   push:
@@ -8,52 +8,93 @@ on:
     branches:
       - main
 
+env:
+  RUST_BACKTRACE: full
+  CRATE_NAME: wedp
+
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-
-        # Define the Rust toolchain and target platforms to cross-compile for
-        rust_toolchain: [stable]
-        target_platform: [x86_64-unknown-linux-gnu, x86_64-apple-darwin, aarch64-unknown-linux-gnu]
+    name: Build and Release
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust_toolchain }}
-          override: true
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
 
-      - name: Install cross
-        run: cargo install cross
+    - name: Install cross
+      run: cargo install cross
 
-      - name: Build for ${{ matrix.target_platform }}
-        run: cross build --release --target ${{ matrix.target_platform }}
+    - name: Cross-compile for Linux
+      run: cross build --release --target x86_64-unknown-linux-gnu
+      env:
+        BUILD_VERSION: ${{ github.ref }}
+        OUTPUT_DIR: ./target/x86_64-unknown-linux-gnu/release
+        PLATFORM: linux-x64
 
-      - name: Archive release files
-        uses: actions/upload-artifact@v2
-        with:
-          name: release-${{ matrix.target_platform }}
-          path: target/${{ matrix.target_platform }}/release/
+    - name: Cross-compile for ARMv7
+      run: cross build --release --target armv7-unknown-linux-gnueabihf
+      env:
+        BUILD_VERSION: ${{ github.ref }}
+        OUTPUT_DIR: ./target/armv7-unknown-linux-gnueabihf/release
+        PLATFORM: linux-armv7
 
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          files: |
-            target/x86_64-unknown-linux-gnu/release/*
-            target/aarch64-unknown-linux-gnu/release/*
-            ${{ matrix.os == 'macos-latest' && matrix.rust_toolchain == 'stable' && matrix.target_platform == 'x86_64-apple-darwin' && env.MACOS_M1 != 'true' }}:
-              target/x86_64-apple-darwin/release/*
-            ${{ matrix.os == 'macos-latest' && matrix.rust_toolchain == 'stable' && matrix.target_platform == 'x86_64-apple-darwin' && env.MACOS_M1 == 'true' }}:
-              target/universal/release/*
-          tag_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
+    - name: Cross-compile for ARM64
+      run: cross build --release --target aarch64-unknown-linux-gnu
+      env:
+        BUILD_VERSION: ${{ github.ref }}
+        OUTPUT_DIR: ./target/aarch64-unknown-linux-gnu/release
+        PLATFORM: linux-arm64
+
+    - name: Cross-compile for macOS Intel
+      run: cross build --release --target x86_64-apple-darwin
+      env:
+        BUILD_VERSION: ${{ github.ref }}
+        OUTPUT_DIR: ./target/x86_64-apple-darwin/release
+        PLATFORM: mac-x64
+
+    - name: Cross-compile for macOS M1
+      run: cross build --release --target aarch64-apple-darwin
+      env:
+        BUILD_VERSION: ${{ github.ref }}
+        OUTPUT_DIR: ./target/aarch64-apple-darwin/release
+        PLATFORM: mac-arm64
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.VERSION }}
+        release_name: Release ${{ env.VERSION }}
+        body: |
+          Changes in this Release:
+          - Add feature A
+          - Fix bug B
+          - Improve performance C
+        draft: false
+        prerelease: false
+
+    - name: Upload Linux Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.OUTPUT_DIR }}/${{ env.CRATE_NAME }}
+        asset_name: ${CRATE_NAME}-${{ env.VERSION }}-${{ env.PLATFORM }}.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload macOS Intel Asset
+      uses: actions/upload-release-asset@v1
+      if: contains(env.PLATFORM, 'mac-x64')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url
