@@ -1,0 +1,1 @@
+//! Runs the seating plan and the wedding invite to run tests.
