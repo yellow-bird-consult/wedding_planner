@@ -18,11 +18,11 @@ jobs:
 
       - name: Install Rust and cross
         run: |
+          docker pull rustembedded/cross:aarch64-unknown-linux-gnu
+          docker pull rustembedded/cross:x86_64-unknown-linux-gnu
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source $HOME/.cargo/env
           cargo install cross
-          docker pull rustembedded/cross
-          # docker pull rustembedded/cross:latest
 
       - name: Install M1 toolchain
         if: runner.os == 'macos'
