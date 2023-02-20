@@ -36,6 +36,13 @@ pub struct InitBuild {
 }
 
 
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct TestBuild {
+    pub build_files: HashMap<String, String>,
+    pub build_root: String
+}
+
+
 /// A struct to hold the local data around a build.
 ///
 /// # Fields
