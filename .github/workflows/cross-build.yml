@@ -161,23 +161,11 @@ jobs:
           rustup target add aarch64-apple-darwin
           cargo build --release --target ${{ matrix.config.target }} --manifest-path ./Cargo.toml
 
-      - name: Determine the current version
-        id: get_version
-        run: echo "::set-output name=version::$(cat Cargo.toml | grep version | head -n1 | cut -d '\"' -f2)"
-
-      - name: Increment the version number
-        id: increment_version
-        run: |
-          IFS='.' read -r -a version_array <<< "${{ steps.get_version.outputs.version }}"
-          (( version_array[1] += 1 ))
-          new_version="${version_array[0]}.${version_array[1]}.0"
-          echo "::set-output name=new_version::$new_version"
-
       - name: Package
         shell: bash
         run: |
           #strip target/${{ matrix.config.target }}/release/wedp     
-          tar -czvf ./wedp-${{ matrix.config.target }}.tar.gz -C /target/${{ matrix.config.target }}/release/ wedp
+          tar -czvf ./wedp-${{ matrix.config.target }}.tar.gz -C ./target/${{ matrix.config.target }}/release/ wedp
       - name: Publish
         uses: softprops/action-gh-release@v1
         # TODO: if any of the build step fails, the release should be deleted.
