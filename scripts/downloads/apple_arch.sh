@@ -12,9 +12,9 @@ url="https://github.com/$repo/releases/download/$release/$repo-$release-$os-$chi
 # Use curl to download the release asset to the current directory
 curl -L -o "$repo-$release-$os-$chip.tar.gz" "$url"
 
-https://github.com/maxwellflitton/nan-services-build-tool/releases/download/v0.0.8/build_tool-aarch64-apple-darwin.tar.gz
+# https://github.com/maxwellflitton/nan-services-build-tool/releases/download/v0.0.8/build_tool-aarch64-apple-darwin.tar.gz
 
 
 
 
-curl --location --request GET 'https://github.com/maxwellflitton/nan-services-build-tool/releases/download/v0.0.8/build_tool-aarch64-apple-darwin.tar.gz' --output file
+# curl --location --request GET 'https://github.com/maxwellflitton/nan-services-build-tool/releases/download/v0.0.8/build_tool-aarch64-apple-darwin.tar.gz' --output file

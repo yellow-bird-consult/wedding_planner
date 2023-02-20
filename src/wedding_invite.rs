@@ -36,6 +36,13 @@ pub struct InitBuild {
 }
 
 
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct TestBuild {
+    pub build_files: HashMap<String, String>,
+    pub build_root: String
+}
+
+
 /// A struct to hold the local data around a build.
 ///
 /// # Fields
@@ -44,12 +51,14 @@ pub struct InitBuild {
 /// * `package_file` - The location of the docker-compose file to run the build
 /// * `init_build` - The location of the data needed for an init pod build
 /// * `runner_files` - The location of the docker-compose files to run the build
+/// * `remote_runner_files` - The location of the docker-compose files to run the build from a remote dockerhub repository
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WeddingInvite {
     pub build_files: Option<HashMap<String, String>>,
     pub build_root: String,
     pub init_build: Option<InitBuild>,
-    pub runner_files: Vec<String>
+    pub runner_files: Vec<String>,
+    pub remote_runner_files: Option<Vec<String>>,
 }
 
 
@@ -93,6 +102,10 @@ impl WeddingInvite {
     }
 
     /// Copies the correct Dockerfile to the build root.
+    /// 
+    /// # Arguments
+    /// * `venue_path` - The path to the venue where all dependencies are stored
+    /// * `name` - The name of the repository where we can prepare the init build
     ///
     /// # Arguments
     /// * `repo_local_path` - The path to the local repository
@@ -111,12 +124,30 @@ impl WeddingInvite {
 
     /// Gets the docker-compose files command string.
     /// 
+    /// # Arguments
+    /// * `venue_path` - The path to the venue where all dependencies are stored
+    /// * `name` - The name of the repository where we can run the images
+    /// 
     /// # Returns
     /// * `String` - The docker-compose files command string
     pub fn get_docker_compose_files(&self, venue_path: &String, name: &String) -> String {
         let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
         let mut files_string = String::new();
         for file in &self.runner_files {
+            files_string.push_str(&format!("-f {}/{} ", &invite_path, file));
+        }
+        files_string
+    }
+
+    /// Gets the docker-compose files command string that run remote images.
+    /// 
+    /// # Arguments
+    /// * `venue_path` - The path to the venue where all dependencies are stored
+    /// * `name` - The name of the repository where we can run the remote images
+    pub fn get_remote_compose_files(&self, venue_path: &String, name: &String) -> String {
+        let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
+        let mut files_string = String::new();
+        for file in self.remote_runner_files.as_ref().unwrap() {
             files_string.push_str(&format!("-f {}/{} ", &invite_path, file));
         }
         files_string

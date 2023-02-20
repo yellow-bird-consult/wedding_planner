@@ -13,6 +13,10 @@
 //! ```bash
 //! wedp run -f tests/live_test.yml
 //! ```
+//! We can teardown the dependency containers with the following command: 
+//! ```bash
+//! wedp teardown -f tests/live_test.yml
+//! ```
 use clap::{App, Arg};
 
 use std::{env, path::Path};
@@ -71,9 +75,27 @@ fn main() {
                 Err(error) => println!("{}", error)
             }
         },
+        "remoterun" => {
+            match Runner::new(full_file_path) {
+                Ok(runner) => runner.run_remote_dependencies(),
+                Err(error) => println!("{}", error)
+            }
+        },
         "install" => {
             match Runner::new(full_file_path) {
                 Ok(runner) => runner.install_dependencies(),
+                Err(error) => println!("{}", error)
+            }
+        },
+        "teardown" => {
+            match Runner::new(full_file_path) {
+                Ok(runner) => runner.teardown_dependencies(),
+                Err(error) => println!("{}", error)
+            }
+        },
+        "remoteteardown" => {
+            match Runner::new(full_file_path) {
+                Ok(runner) => runner.teardown_remote_dependencies(),
                 Err(error) => println!("{}", error)
             }
         },
