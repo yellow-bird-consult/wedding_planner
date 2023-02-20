@@ -88,7 +88,18 @@ like the following:
 ./wedp teardown -f /path/to/seating_plan.yml
 ```
 
-tagging:
+## Deploying a new release
+
+Create the tag with the following:
+
+```bash
+git tag -a v0.0.6 -m "testing the deployment"
 ```
-git tag -a v1.4 -m "my version 1.4"
+
+We then push the tag with the following:
+
+```bash
+git push origin v0.0.6 
 ```
+
+This will then trigger the build and make a new release
