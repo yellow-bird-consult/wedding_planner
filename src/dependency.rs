@@ -4,9 +4,7 @@
 //! - checkout a branch for the Github repository
 //! - Gets the wedding invite data from the Github repository
 use serde::{Deserialize, Serialize};
-use serde_yaml::{self};
 use std::path::Path;
-use std::fs::File;
 use crate::wedding_invite::WeddingInvite;
 
 
@@ -60,11 +58,11 @@ impl Dependency {
     pub fn get_wedding_invite(&self, venue_path: &String) -> Result<WeddingInvite, String> {
         let invite_path = Path::new(&venue_path).join(&self.name)
                                                            .join("wedding_invite.yml");
-        let file = match File::open(invite_path) {
-            Ok(f) => f,
-            Err(e) => return Err(format!("Could not open file: {}", e))
-        };
-        let invite_data: WeddingInvite = match serde_yaml::from_reader(file) {
+        // let file = match File::open(invite_path) {
+        //     Ok(f) => f,
+        //     Err(e) => return Err(format!("Could not open file: {}", e))
+        // };
+        let invite_data = match WeddingInvite::from_file(invite_path.to_str().unwrap().to_string()) {
             Ok(ld) => ld,
             Err(e) => return Err(format!("Could not read values: {}", e))
         };

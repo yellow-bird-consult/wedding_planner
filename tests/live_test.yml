@@ -2,7 +2,5 @@ attendees:
   - name: institution
     url: https://github.com/yellow-bird-consult/institution.git
     branch: infrastructure
-    local_run_config_file: ../sandbox/local_service_configs/jane-doe.yml
-    remote_run_config_file: ../sandbox/remote_service_configs/jane-doe.yml
 
 venue: ./sandbox/services/
