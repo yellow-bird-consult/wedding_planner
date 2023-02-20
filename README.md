@@ -87,3 +87,8 @@ like the following:
 ```bash
 ./wedp teardown -f /path/to/seating_plan.yml
 ```
+
+tagging:
+```
+git tag -a v1.4 -m "my version 1.4"
+```

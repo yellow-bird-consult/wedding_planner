@@ -101,12 +101,12 @@
 name: cross-build
 
 on:
+  pull_request:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
 
 jobs:
   deploy:
@@ -160,6 +160,19 @@ jobs:
         run: |
           rustup target add aarch64-apple-darwin
           cargo build --release --target ${{ matrix.config.target }} --manifest-path ./Cargo.toml
+
+      - name: Determine the current version
+        id: get_version
+        run: echo "::set-output name=version::$(cat Cargo.toml | grep version | head -n1 | cut -d '\"' -f2)"
+
+      - name: Increment the version number
+        id: increment_version
+        run: |
+          IFS='.' read -r -a version_array <<< "${{ steps.get_version.outputs.version }}"
+          (( version_array[1] += 1 ))
+          new_version="${version_array[0]}.${version_array[1]}.0"
+          echo "::set-output name=new_version::$new_version"
+
       - name: Package
         shell: bash
         run: |
@@ -172,3 +185,10 @@ jobs:
           files: "wedp*.tar.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+#           repo_token: ${{ secrets.GITHUB_TOKEN }}
+#           file: target/release/#{your final bin name here}
+#           asset_name: #{your final bin name here}
+#           tag: build-${{ github.ref }}
