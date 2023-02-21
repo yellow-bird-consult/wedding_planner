@@ -1,20 +1,57 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# 
+# This script downloads an asset from latest or specific Github release of a
+# private repo. Feel free to extract more of the variables into command line
+# parameters.
+#
+# PREREQUISITES
+#
+# curl, wget, jq
+#
+# USAGE
+#
+# Set all the variables inside the script, make sure you chmod +x it, then
+# to download specific version to my_app.tar.gz:
+#
+#     gh-dl-release 2.1.1 my_app.tar.gz
+#
+# to download latest version:
+#
+#     gh-dl-release latest latest.tar.gz
+#
+# If your version/tag doesn't match, the script will exit with error.
 
-# Set the variables for the GitHub repo, release, and the operating system and chip you're targeting
-repo="yellow-bird-consult/wedding_planner"
-release="v1.0.0"
-os="linux"
-chip="amd64"
+TOKEN="$3"
+REPO="$4"
+FILE="$2"      # the name of your release asset file, e.g. build.tar.gz
+VERSION="$1"                       # tag name or the word "latest"
+GITHUB="https://api.github.com"
 
-# Construct the URL of the release asset you want to download
-url="https://github.com/$repo/releases/download/$release/$repo-$release-$os-$chip.tar.gz"
+alias errcho='>&2 echo'
 
-# Use curl to download the release asset to the current directory
-curl -L -o "$repo-$release-$os-$chip.tar.gz" "$url"
+function gh_curl() {
+  curl -H "Authorization: token $TOKEN" \
+       -H "Accept: application/vnd.github.v3.raw" \
+       $@
+}
 
-# https://github.com/maxwellflitton/nan-services-build-tool/releases/download/v0.0.8/build_tool-aarch64-apple-darwin.tar.gz
+parser=".assets | map(select(.name == \"$FILE\"))[0].id"
+if [ "$VERSION" = "latest" ]; then
+  # Github should return the latest release first.
+  asset_id=`gh_curl -s $GITHUB/repos/$REPO/releases/latest | jq "$parser"`
+else
+  asset_id=`gh_curl -s $GITHUB/repos/$REPO/releases/tags/$VERSION | jq "$parser"`
+fi;
 
+if [ -z "$asset_id" ]; then
+  errcho "ERROR: version not found $VERSION"
+  exit 1
+fi;
+if [ "$asset_id" = "null" ]; then
+  errcho "ERROR: file $FILE not found in version $VERSION"
+  exit 2
+fi;
 
-
-
-# curl --location --request GET 'https://github.com/maxwellflitton/nan-services-build-tool/releases/download/v0.0.8/build_tool-aarch64-apple-darwin.tar.gz' --output file
+wget -q --auth-no-challenge --header='Accept:application/octet-stream' \
+  https://$TOKEN:@api.github.com/repos/$REPO/releases/assets/$asset_id \
+  -O $2
