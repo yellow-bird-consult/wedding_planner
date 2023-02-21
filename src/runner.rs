@@ -45,7 +45,7 @@ impl Runner {
     /// ```
     /// docker-compose -f venue/dependency1/docker-compose.yml -f venue/dependency2/docker-compose.yml
     /// ```
-    fn get_compose_file_command(&self, remote: bool) -> String {
+    pub fn get_compose_file_command(&self, remote: bool) -> String {
         let venue = &self.seating_plan.venue;
         let mut command_string = "docker-compose ".to_owned();
 
@@ -66,9 +66,8 @@ impl Runner {
     /// # Arguments
     /// * `command` - The command to run on the docker files
     /// * `error_message` - The error message to display if the command fails
-    /// * `remote` - If the docker-compose files are remote or not
-    fn run_docker_command(&self, command: &str, error_message: &str, remote: bool) {
-        let mut command_string = self.get_compose_file_command(remote);
+    /// * `command_string` - The list of docker-compose files to run the command on
+    pub fn run_docker_command(&self, command: &str, error_message: &str, mut command_string: String) {
         command_string.push_str(command);
 
         let mut command = Command::new("bash").arg("-c")
@@ -111,16 +110,35 @@ impl Runner {
             if Path::new(&venue).join(&dependency.name).is_dir() == true {
                 std::fs::remove_dir_all(Path::new(&venue).join(&dependency.name)).unwrap();
             };
+            // download and checkout the dependency
             dependency.clone_github_repo(&venue);
             dependency.checkout_branch(&venue);
             let wedding_invite = dependency.get_wedding_invite(&venue).unwrap();
 
+            // configure the build files for the dependency
             match wedding_invite.build_files {
-                Some(_) => wedding_invite.prepare_build_file(&venue, &dependency.name),
+                Some(_) => {
+                    let locked_build = match wedding_invite.build_lock {
+                        Some(unpacked_result) => unpacked_result,
+                        None => false
+                    };
+                    if locked_build == false {
+                        wedding_invite.prepare_build_file(&venue, &dependency.name);
+                    }
+                },
                 None => continue
             }
-            match wedding_invite.init_build {
-                Some(_) => wedding_invite.prepare_init_build_file(&venue, &dependency.name),
+            // configure the build files for the dependency's init build
+            match &wedding_invite.init_build {
+                Some(unpacked_init_build) => {
+                    let locked_build = match unpacked_init_build.build_lock {
+                        Some(unpacked_result) => unpacked_result,
+                        None => false
+                    };
+                    if locked_build == false {
+                        wedding_invite.prepare_init_build_file(&venue, &dependency.name);
+                    }
+                },
                 None => continue
             }
         }
@@ -128,27 +146,32 @@ impl Runner {
 
     /// Tears down the dependencies that are running.
     pub fn teardown_dependencies(&self) {
-        self.run_docker_command(" down", "failed to tear down", false);
+        let command_string = self.get_compose_file_command(false);
+        self.run_docker_command(" down", "failed to tear down", command_string);
     }
 
     /// Tears down the remote dependencies that are running.
     pub fn teardown_remote_dependencies(&self) {
-        self.run_docker_command(" down", "failed to tear down", true);
+        let command_string = self.get_compose_file_command(true);
+        self.run_docker_command(" down", "failed to tear down", command_string);
     }
 
     /// Builds the dependencies that are needed to run. 
     pub fn build_dependencies(&self) {
-        self.run_docker_command(" build --no-cache", "failed to build", false);
+        let command_string = self.get_compose_file_command(false);
+        self.run_docker_command(" build --no-cache", "failed to build", command_string);
     }
 
     /// Runs the dependencies defined.
     pub fn run_dependencies(&self) {
-        self.run_docker_command(" up", "failed to run", false);
+        let command_string = self.get_compose_file_command(false);
+        self.run_docker_command(" up", "failed to run", command_string);
     }
 
     /// Runs the remote dependencies defined.
     pub fn run_remote_dependencies(&self) {
-        self.run_docker_command(" up", "failed to run", true);
+        let command_string = self.get_compose_file_command(true);
+        self.run_docker_command(" up", "failed to run", command_string);
     }
 
 }

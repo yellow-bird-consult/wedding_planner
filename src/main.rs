@@ -26,8 +26,10 @@ mod dependency;
 mod seating_plan;
 mod wedding_invite;
 mod runner;
+mod dress_rehearsal;
 
 use runner::Runner;
+use dress_rehearsal::dress_rehearsal_factory;
 
 
 fn main() {
@@ -105,7 +107,9 @@ fn main() {
             }
         }
         _ => {
-            println!("{} not supported", command);
+            let seating_plan_path = "".to_owned();
+            let wedding_invite_path = "".to_owned();
+            dress_rehearsal_factory(command.to_string(), seating_plan_path, wedding_invite_path, cwd);
         }
     }
 }

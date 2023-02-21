@@ -29,10 +29,12 @@ use std::path::Path;
 /// # Fields
 /// * `build_files` - A map of Dockerfiles relating to CPU information
 /// * `build_root` - The root of the build (where the Dockerfile needs to be to run)
+/// * `build_lock` - Whether to lock the build to a specific CPU architecture, if ```true``` the CPU will not be checked and the Dockerfile will not be moved
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct InitBuild {
     pub build_files: HashMap<String, String>,
-    pub build_root: String
+    pub build_root: String,
+    pub build_lock: Option<bool>
 }
 
 
@@ -52,6 +54,7 @@ pub struct TestBuild {
 /// * `init_build` - The location of the data needed for an init pod build
 /// * `runner_files` - The location of the docker-compose files to run the build
 /// * `remote_runner_files` - The location of the docker-compose files to run the build from a remote dockerhub repository
+/// * `build_lock` - Whether to lock the build to a specific CPU architecture, if ```true``` the CPU will not be checked and the Dockerfile will not be moved
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WeddingInvite {
     pub build_files: Option<HashMap<String, String>>,
@@ -59,6 +62,7 @@ pub struct WeddingInvite {
     pub init_build: Option<InitBuild>,
     pub runner_files: Vec<String>,
     pub remote_runner_files: Option<Vec<String>>,
+    pub build_lock: Option<bool>,
 }
 
 
@@ -176,7 +180,8 @@ mod local_data_tests {
         assert_eq!(ld.build_root, ".");
         assert_eq!(ld.init_build, Some(InitBuild {
             build_files: init_builds,
-            build_root: "database".to_string()
+            build_root: "database".to_string(),
+            build_lock: None
         }));
     }
 
