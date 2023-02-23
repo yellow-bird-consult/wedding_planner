@@ -27,6 +27,7 @@ mod seating_plan;
 mod wedding_invite;
 mod runner;
 mod dress_rehearsal;
+mod commands;
 
 use runner::Runner;
 use dress_rehearsal::dress_rehearsal_factory;

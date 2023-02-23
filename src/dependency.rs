@@ -86,3 +86,94 @@ impl Dependency {
             .expect("Failed to checkout branch");
     }
 }
+
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use mockall::predicate::*;
+//     use mockall::Sequence;
+
+//     #[test]
+//     fn test_clone_github_repo() {
+//         let mut mock_cmd = MockCommand::new();
+//         mock_cmd
+//             .expect_new()
+//             .with(eq("bash"))
+//             .times(1)
+//             .returning(|| mock_cmd.clone());
+//         mock_cmd
+//             .expect_arg()
+//             .with(eq("-c"))
+//             .times(2)
+//             .returning(|| mock_cmd.clone());
+//         mock_cmd
+//             .expect_arg()
+//             .with(eq(format!("git clone {} {}", "https://github.com/example/test-repo.git", "/path/to/venue/test-repo")))
+//             .times(1)
+//             .returning(|| mock_cmd.clone());
+//         mock_cmd
+//             .expect_output()
+//             .times(1)
+//             .returning(|_| std::process::Output {
+//                 status: std::process::ExitStatus::from_raw(0),
+//                 stdout: Vec::new(),
+//                 stderr: Vec::new(),
+//             });
+
+//         let dependency = Dependency {
+//             name: String::from("test-repo"),
+//             url: String::from("https://github.com/example/test-repo.git"),
+//             branch: String::from("main"),
+//         };
+//         let venue_path = String::from("/path/to/venue");
+
+//         // Ensure the repo is cloned if it doesn't already exist
+//         dependency.clone_github_repo(&venue_path, &mock_cmd);
+//         let repo_path = format!("{}/{}", venue_path, dependency.name);
+//         assert!(Path::new(&repo_path).exists());
+
+//         // Ensure the repo is not cloned if it already exists
+//         dependency.clone_github_repo(&venue_path, &mock_cmd);
+//         assert!(Path::new(&repo_path).exists());
+//     }
+
+//     #[test]
+//     fn test_get_wedding_invite() {
+//         let mut mock_cmd = MockCommand::new();
+//         mock_cmd
+//             .expect_new()
+//             .with(eq("bash"))
+//             .times(1)
+//             .returning(|| mock_cmd.clone());
+//         mock_cmd
+//             .expect_arg()
+//             .with(eq("-c"))
+//             .times(1)
+//             .returning(|| mock_cmd.clone());
+//         mock_cmd
+//             .expect_output()
+//             .times(1)
+//             .returning(|_| std::process::Output {
+//                 status: std::process::ExitStatus::from_raw(0),
+//                 stdout: Vec::new(),
+//                 stderr: Vec::new(),
+//             });
+
+//         let dependency = Dependency {
+//             name: String::from("test-repo"),
+//             url: String::from("https://github.com/example/test-repo.git"),
+//             branch: String::from("main"),
+//         };
+//         let venue_path = String::from("/path/to/venue");
+
+//         // Ensure the function returns a WeddingInvite struct
+//         let wedding_invite = dependency.get_wedding_invite(&venue_path, &mock_cmd);
+//         assert!(wedding_invite.is_ok());
+
+//         // Ensure the function returns an error if the file doesn't exist
+//         let venue_path = String::from("/path/to/nonexistent/directory");
+//         let wedding_invite = dependency.get_wedding_invite(&venue_path, &mock_cmd);
+//         assert!(wedding_invite.is_err());
+//     }
+// }

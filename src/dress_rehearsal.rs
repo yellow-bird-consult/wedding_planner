@@ -22,6 +22,8 @@ pub fn dress_rehearsal_factory(command: String, seating_plan_path: String, weddi
     match command.as_ref() {
 
         "dressbuild" => {
+            dress_rehearsal.wedding_invite.prepare_build_file(&working_directory, &"".to_string());
+            dress_rehearsal.wedding_invite.prepare_init_build_file(&working_directory, &"".to_string());
             dress_rehearsal.build_dependencies();
         },
         "dressrun" => {
@@ -38,6 +40,8 @@ pub fn dress_rehearsal_factory(command: String, seating_plan_path: String, weddi
         },
         "dressremoteteardown" => {
             dress_rehearsal.teardown_remote_dependencies();
+            dress_rehearsal.wedding_invite.delete_build_file(&working_directory, &"".to_string());
+            dress_rehearsal.wedding_invite.delete_init_build_file(&working_directory, &"".to_string());
         },
         "dresssetup" => {
             dress_rehearsal.runner.create_venue();

@@ -92,6 +92,11 @@ impl WeddingInvite {
     /// # Arguments
     /// * `repo_local_path` - The path to the local repository
     pub fn prepare_build_file(&self, venue_path: &String, name: &String) {
+        if let Some(lock) = self.build_lock {
+            if lock == true {
+                return ()
+            }
+        }
         let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
         let cpu_type = super::cpu_data::CpuType::get().to_string();
         let files_map = self.build_files.as_ref().unwrap();
@@ -105,6 +110,23 @@ impl WeddingInvite {
         copy(build_path, build_root_path).unwrap();
     }
 
+    /// Deletes the Dockerfile from the build root.
+    /// 
+    /// # Arguments
+    /// * `venue_path` - The path to the venue where all dependencies are stored
+    /// * `name` - The name of the repository where we can prepare the init build
+    pub fn delete_build_file(&self, venue_path: &String, name: &String) {
+        if let Some(lock) = self.build_lock {
+            if lock == true {
+                return ()
+            }
+        }
+        let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
+        let build_root_path = Path::new(&invite_path).join(&self.build_root)
+                                                                    .join("Dockerfile");
+        std::fs::remove_file(build_root_path).unwrap();
+    }
+
     /// Copies the correct Dockerfile to the build root.
     /// 
     /// # Arguments
@@ -114,16 +136,47 @@ impl WeddingInvite {
     /// # Arguments
     /// * `repo_local_path` - The path to the local repository
     pub fn prepare_init_build_file(&self, venue_path: &String, name: &String) {
+
+        if None == self.init_build {
+            return ()
+        }
+        if let Some(lock) = self.init_build.as_ref().unwrap().build_lock {
+            if lock == true {
+                return ()
+            }
+        }
         let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
         let cpu_type = super::cpu_data::CpuType::get().to_string();
+
         let build_file_path = match self.init_build.as_ref().unwrap().build_files.get(&cpu_type){
             Some(p) => p,
             None => panic!("No build file for CPU type: {}", &cpu_type)
         };
+
         let build_path = Path::new(&invite_path).join(build_file_path);
         let build_root_path = Path::new(&invite_path).join(&self.init_build.as_ref().unwrap().build_root)
                                                                     .join("Dockerfile");
         copy(build_path, build_root_path).unwrap();
+    }
+
+    /// Deletes the Dockerfile from the init build root.
+    /// 
+    /// # Arguments
+    /// * `venue_path` - The path to the venue where all dependencies are stored
+    /// * `name` - The name of the repository where we can prepare the init build
+    pub fn delete_init_build_file(&self, venue_path: &String, name: &String) {
+        if None == self.init_build {
+            return ()
+        }
+        if let Some(lock) = self.init_build.as_ref().unwrap().build_lock {
+            if lock == true {
+                return ()
+            }
+        }
+        let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
+        let build_root_path = Path::new(&invite_path).join(&self.init_build.as_ref().unwrap().build_root)
+                                                                    .join("Dockerfile");
+        std::fs::remove_file(build_root_path).unwrap();
     }
 
     /// Gets the docker-compose files command string.
