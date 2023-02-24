@@ -23,11 +23,15 @@ use std::{env, path::Path};
 
 mod cpu_data;
 mod dependency;
+mod file_handler;
 mod seating_plan;
 mod wedding_invite;
 mod runner;
+mod dress_rehearsal;
+mod commands;
 
 use runner::Runner;
+use dress_rehearsal::dress_rehearsal_factory;
 
 
 fn main() {
@@ -59,6 +63,7 @@ fn main() {
         None => "wedding_planner.yml".to_owned()
     };
     let full_file_path = Path::new(&cwd).join(&file_name).as_os_str().to_str().unwrap().to_owned();
+    println!("Running {} with file {}", command, full_file_path);
 
     match command.as_ref() {
 
@@ -103,9 +108,11 @@ fn main() {
                 Ok(runner) => runner.create_venue(),
                 Err(error) => println!("{}", error)
             }
-        }
+        },
         _ => {
-            println!("{} not supported", command);
+            let seating_plan_path = "".to_owned();
+            let wedding_invite_path = "".to_owned();
+            dress_rehearsal_factory(command.to_string(), seating_plan_path, wedding_invite_path, cwd);
         }
     }
 }
@@ -116,7 +123,7 @@ fn main() {
 mod main_tests {
 
     use assert_cmd::Command;
-    use predicates::prelude::*;
+    // use predicates::prelude::*;
     // use std::fs;
 
     // #[test]

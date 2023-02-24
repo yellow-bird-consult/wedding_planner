@@ -20,6 +20,7 @@ use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::fs::File;
 use std::path::Path;
+use crate::file_handler::CoreFileHandle;
 
 use crate::dependency::Dependency;
 
@@ -58,20 +59,16 @@ impl SeatingPlan {
     }
 
     /// Creates a venue directory if the venue is not already present. 
-    pub fn create_venue(&self) {
+    /// 
+    /// # Arguments
+    /// * `file_handler` - A ```CoreFileHandle``` trait object that handles the creation of the venue directory
+    /// 
+    /// # Returns
+    /// * `Result<(), std::io::Error>` - An error if the directory could not be created
+    pub fn create_venue(&self, file_handler: &dyn CoreFileHandle) -> Result<(), std::io::Error> {
         println!("Creating venue directory");
         let venue_path = Path::new(&self.venue);
-        if venue_path.exists() {
-            println!("{} already exists, skipping", self.venue);
-        }
-        else {
-            let create_cmd = format!("mkdir {}", venue_path.display());
-            let _ = std::process::Command::new("bash")
-                .arg("-c")
-                .arg(create_cmd)
-                .output()
-                .expect("Failed to create venue directory");
-        }
+        file_handler.create_directory_if_not_exists(venue_path)
     }
 }
 
@@ -79,21 +76,47 @@ impl SeatingPlan {
 // below are tests for the seating_plan.rs file
 #[cfg(test)]
 mod tests {
+
     use super::*;
+    use crate::file_handler::MockCoreFileHandle;
+    use mockall::predicate::eq;
 
     #[test]
     fn test_from_file() {
         let seating_plan = SeatingPlan::from_file("tests/live_test.yml".to_string()).unwrap();
-        println!("{:?}", seating_plan);
-        let venue = seating_plan.venue;
-        let dependency = &seating_plan.attendees[0];
-        dependency.clone_github_repo(&venue);
-        dependency.checkout_branch(&venue);
-        let wedding_invite = dependency.get_wedding_invite(&venue).unwrap();
 
-        println!("{:?}", wedding_invite);
-        wedding_invite.prepare_build_file(&venue, &dependency.name);
-        wedding_invite.prepare_init_build_file(&venue, &dependency.name);
-        println!("{:?}", wedding_invite.get_docker_compose_files(&venue, &dependency.name));
+        assert_eq!(
+            seating_plan.attendees,
+            vec![
+                Dependency {
+                    name: "institution".to_string(),
+                    url: "https://github.com/yellow-bird-consult/institution.git".to_string(),
+                    branch: "infrastructure".to_string(),
+                },
+            ]
+        );
+
+        assert_eq!(
+            seating_plan.venue,
+            "./sandbox/services/".to_string()
+        );
+    }
+
+    #[test]
+    fn test_create_venue() {
+        let seating_plan = SeatingPlan::from_file("tests/live_test.yml".to_string()).unwrap();
+
+        let mut mock_handle = MockCoreFileHandle::new();
+        let venue_path = Path::new("./sandbox/services/");
+
+        mock_handle.expect_create_directory_if_not_exists()
+            .with(eq(venue_path))
+            .returning(|_| {
+                Ok(())
+            });
+
+        let result = seating_plan.create_venue(&mock_handle);
+        assert!(result.is_ok());
+        mock_handle.checkpoint(); 
     }
 }
