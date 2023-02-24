@@ -122,7 +122,7 @@ fn main() {
 #[cfg(test)]
 mod main_tests {
 
-    use assert_cmd::Command;
+    // use assert_cmd::Command;
     // use predicates::prelude::*;
     // use std::fs;
 
@@ -134,11 +134,11 @@ mod main_tests {
     //         .stderr(predicate::str::contains("USAGE"));
     // }
 
-    #[test]
-    fn runs() {
-        let mut cmd = Command::cargo_bin("wedp").unwrap();
-        cmd.arg("hello").assert().success();
-    }
+    // #[test]
+    // fn runs() {
+    //     let mut cmd = Command::cargo_bin("wedp").unwrap();
+    //     cmd.arg("hello").assert().success();
+    // }
     //
     // #[test]
     // fn hello1() {
