@@ -15,10 +15,10 @@ use crate::commands::command_runner::{CommandRunner, CoreRunner};
 pub fn dress_rehearsal_factory(command: String, seating_plan_path: String, wedding_invite_path: String, working_directory: String) {
     let file_handle = FileHandle{};
 
-    let dress_rehearsal = match DressRehearsal::new(seating_plan_path, wedding_invite_path, &working_directory) {
+    let dress_rehearsal = match DressRehearsal::new(seating_plan_path.clone(), wedding_invite_path.clone(), &working_directory) {
         Ok(dress_rehearsal) => dress_rehearsal,
         Err(error) => {
-            println!("{}", error);
+            println!("{} for seating plan path: {} wedding invite path: {} working dir {}", error, seating_plan_path, wedding_invite_path, working_directory);
             return;
         }
     };
@@ -46,8 +46,17 @@ pub fn dress_rehearsal_factory(command: String, seating_plan_path: String, weddi
         "dressrun" => {
             dress_rehearsal.run_dependencies();
         },
+        "dressdevrun" => {
+            dress_rehearsal.run_dev_dependencies();
+        },
+        "dressrun-d" => {
+            dress_rehearsal.run_dependencies_background();
+        },
         "dressremoterun" => {
             dress_rehearsal.run_remote_dependencies();
+        },
+        "dressremoterun-d" => {
+            dress_rehearsal.run_remote_dependencies_background();
         },
         "dressinstall" => {
             dress_rehearsal.runner.install_dependencies();
@@ -133,6 +142,24 @@ impl DressRehearsal {
         return command_string;
     }
 
+    /// Gets the docker-compose command for the dependencies in the seating plan and local wedding invite for dev mode.
+    /// 
+    /// # Returns
+    /// * `String` - The docker-compose command
+    fn get_compose_file_command_dev(&self) -> String {
+        let mut command_string = self.runner.get_compose_file_command(false);
+
+        match &self.wedding_invite.dev_runner_files {
+            Some(dev_runner_files) => {
+                for file in dev_runner_files {
+                    command_string.push_str(&format!("-f {}/{} ", self.working_directory, file));
+                }
+            },
+            None => {}
+        }
+        return command_string;
+    }
+
     /// Tears down the dependencies that are running.
     pub fn teardown_dependencies(&self) {
         let command_runner = CommandRunner {};
@@ -158,13 +185,34 @@ impl DressRehearsal {
     pub fn run_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
-        command_runner.run_docker_command(" up", "failed to tear down", &mut command_string);
+        command_runner.run_docker_command(" up", "failed to run dependencies", &mut command_string);
+    }
+
+    /// Runs the dependencies defined in the background.
+    pub fn run_dependencies_background(&self) {
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(false);
+        command_runner.run_docker_command(" up -d", "failed to run dependencies in the background", &mut command_string);
     }
 
     /// Runs the remote dependencies defined.
     pub fn run_remote_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(true);
-        command_runner.run_docker_command(" up", "failed to tear down", &mut command_string);
+        command_runner.run_docker_command(" up", "failed to run remote dependencies", &mut command_string);
+    }
+
+    /// Runs the remote dependencies defined in the background.
+    pub fn run_remote_dependencies_background(&self) {
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(true);
+        command_runner.run_docker_command(" up -d", "failed to run remote dependencies in the background", &mut command_string);
+    }
+
+    /// Runs the dependencies defined in dev mode.
+    pub fn run_dev_dependencies(&self) {
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command_dev();
+        command_runner.run_docker_command(" up", "failed to run dependencies in dev mode", &mut command_string);
     }
 }

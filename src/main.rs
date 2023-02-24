@@ -79,9 +79,21 @@ fn main() {
                 Err(error) => println!("{}", error)
             }
         },
+        "run-d" => {
+            match Runner::new(full_file_path) {
+                Ok(runner) => runner.run_dependencies_background(),
+                Err(error) => println!("{}", error)
+            }
+        },
         "remoterun" => {
             match Runner::new(full_file_path) {
                 Ok(runner) => runner.run_remote_dependencies(),
+                Err(error) => println!("{}", error)
+            }
+        },
+        "remoterun-d" => {
+            match Runner::new(full_file_path) {
+                Ok(runner) => runner.run_remote_dependencies_background(),
                 Err(error) => println!("{}", error)
             }
         },
@@ -110,9 +122,9 @@ fn main() {
             }
         },
         _ => {
-            let seating_plan_path = "".to_owned();
-            let wedding_invite_path = "".to_owned();
-            dress_rehearsal_factory(command.to_string(), seating_plan_path, wedding_invite_path, cwd);
+            let wedding_invite_file = "wedding_invite.yml";
+            let wedding_invite_path = Path::new(&cwd).join(wedding_invite_file).as_os_str().to_str().unwrap().to_owned();
+            dress_rehearsal_factory(command.to_string(), full_file_path, wedding_invite_path, cwd);
         }
     }
 }

@@ -47,13 +47,13 @@ impl SeatingPlan {
     /// # Returns
     /// * `Result<SeatingPlan, String>` - A ```SeatingPlan``` struct or an error message
     pub fn from_file(file_path: String) -> Result<SeatingPlan, String> {
-        let file = match File::open(file_path) {
+        let file = match File::open(&file_path) {
             Ok(f) => f,
-            Err(e) => return Err(format!("Could not open file: {}", e))
+            Err(e) => return Err(format!("Could not open file: {} for {}", e, file_path))
         };
         let seating_plan: SeatingPlan = match serde_yaml::from_reader(file) {
             Ok(s) => s,
-            Err(e) => return Err(format!("Could not parse file: {}", e))
+            Err(e) => return Err(format!("Could not parse file: {} for {}", e, file_path))
         };
         Ok(seating_plan)
     }

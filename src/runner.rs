@@ -172,11 +172,25 @@ impl Runner {
         command_runner.run_docker_command(" up", "failed to run", &mut command_string);
     }
 
+    /// Runs the dependencies defined in the background.
+    pub fn run_dependencies_background(&self) {
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(false);
+        command_runner.run_docker_command(" up -d", "failed to run", &mut command_string);
+    }
+
     /// Runs the remote dependencies defined.
     pub fn run_remote_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(true);
         command_runner.run_docker_command(" up", "failed to run", &mut command_string);
+    }
+
+    /// Runs the remote dependencies defined in the background.
+    pub fn run_remote_dependencies_background(&self) {
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(true);
+        command_runner.run_docker_command(" up -d", "failed to run", &mut command_string);
     }
 
 }
