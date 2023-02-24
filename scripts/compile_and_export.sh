@@ -8,4 +8,4 @@ cd ..
 cargo build --release
 
 # Export the project
-cp target/release/wedp ./tests/wedp
+cp target/release/wedp ./wedp

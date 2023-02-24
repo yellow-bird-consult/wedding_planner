@@ -19,9 +19,10 @@
 //! ```
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
-use std::fs::{File, copy};
+use std::fs::File;
 use std::collections::HashMap;
 use std::path::Path;
+use crate::file_handler::CoreFileHandle;
 
 
 /// A struct to hold the local data around a build for an init pod.
@@ -55,7 +56,7 @@ pub struct TestBuild {
 /// * `runner_files` - The location of the docker-compose files to run the build
 /// * `remote_runner_files` - The location of the docker-compose files to run the build from a remote dockerhub repository
 /// * `build_lock` - Whether to lock the build to a specific CPU architecture, if ```true``` the CPU will not be checked and the Dockerfile will not be moved
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct WeddingInvite {
     pub build_files: Option<HashMap<String, String>>,
     pub build_root: String,
@@ -90,11 +91,16 @@ impl WeddingInvite {
     /// Copies the correct Dockerfile to the build root.
     ///
     /// # Arguments
-    /// * `repo_local_path` - The path to the local repository
-    pub fn prepare_build_file(&self, venue_path: &String, name: &String) {
+    /// * `venue_path` - The path to the venue directory where all the dependencies are stored
+    /// * `name` - The name of the dependency in the venue directory
+    /// * `handle` - A FileHandle struct to handle the copying of the build file
+    /// 
+    /// # Returns
+    /// * `io::Result<u64>` - The number of bytes copied
+    pub fn prepare_build_file(&self, venue_path: &String, name: &String, handle: &dyn CoreFileHandle) -> std::io::Result<u64> {
         if let Some(lock) = self.build_lock {
             if lock == true {
-                return ()
+                return Ok(0)
             }
         }
         let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
@@ -102,12 +108,13 @@ impl WeddingInvite {
         let files_map = self.build_files.as_ref().unwrap();
         let build_file_path = match files_map.get(&cpu_type){
             Some(p) => p,
-            None => panic!("No build file for CPU type: {}", &cpu_type)
+            None => return Err(std::io::Error::new(std::io::ErrorKind::Other, 
+                format!("No build file for CPU type: {}", cpu_type)))
         };
         let build_path = Path::new(&invite_path).join(build_file_path);
         let build_root_path = Path::new(&invite_path).join(&self.build_root)
                                                                     .join("Dockerfile");
-        copy(build_path, build_root_path).unwrap();
+        handle.copy(&build_path, &build_root_path)
     }
 
     /// Deletes the Dockerfile from the build root.
@@ -115,16 +122,20 @@ impl WeddingInvite {
     /// # Arguments
     /// * `venue_path` - The path to the venue where all dependencies are stored
     /// * `name` - The name of the repository where we can prepare the init build
-    pub fn delete_build_file(&self, venue_path: &String, name: &String) {
+    /// * `handle` - A FileHandle struct to handle the removing of the build file
+    /// 
+    /// # Returns
+    /// * `io::Result<()>` - An empty result or an error
+    pub fn delete_build_file(&self, venue_path: &String, name: &String, handle: &dyn CoreFileHandle) -> Result<(), std::io::Error> {
         if let Some(lock) = self.build_lock {
             if lock == true {
-                return ()
+                return Ok(())
             }
         }
         let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
         let build_root_path = Path::new(&invite_path).join(&self.build_root)
                                                                     .join("Dockerfile");
-        std::fs::remove_file(build_root_path).unwrap();
+        handle.remove(&build_root_path)
     }
 
     /// Copies the correct Dockerfile to the build root.
@@ -132,17 +143,18 @@ impl WeddingInvite {
     /// # Arguments
     /// * `venue_path` - The path to the venue where all dependencies are stored
     /// * `name` - The name of the repository where we can prepare the init build
-    ///
-    /// # Arguments
-    /// * `repo_local_path` - The path to the local repository
-    pub fn prepare_init_build_file(&self, venue_path: &String, name: &String) {
+    /// * `handle` - A FileHandle struct to handle the copying of the build file
+    /// 
+    /// # Returns
+    /// * `io::Result<u64>` - The number of bytes copied
+    pub fn prepare_init_build_file(&self, venue_path: &String, name: &String, handle: &dyn CoreFileHandle) -> std::io::Result<u64> {
 
         if None == self.init_build {
-            return ()
+            return Ok(0)
         }
         if let Some(lock) = self.init_build.as_ref().unwrap().build_lock {
             if lock == true {
-                return ()
+                return Ok(0)
             }
         }
         let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
@@ -156,7 +168,7 @@ impl WeddingInvite {
         let build_path = Path::new(&invite_path).join(build_file_path);
         let build_root_path = Path::new(&invite_path).join(&self.init_build.as_ref().unwrap().build_root)
                                                                     .join("Dockerfile");
-        copy(build_path, build_root_path).unwrap();
+        handle.copy(&build_path, &build_root_path)
     }
 
     /// Deletes the Dockerfile from the init build root.
@@ -164,19 +176,20 @@ impl WeddingInvite {
     /// # Arguments
     /// * `venue_path` - The path to the venue where all dependencies are stored
     /// * `name` - The name of the repository where we can prepare the init build
-    pub fn delete_init_build_file(&self, venue_path: &String, name: &String) {
+    /// * `handle` - A FileHandle struct to handle the removing of the build file
+    pub fn delete_init_build_file(&self, venue_path: &String, name: &String, handle: &dyn CoreFileHandle) -> Result<(), std::io::Error> {
         if None == self.init_build {
-            return ()
+            return Ok(())
         }
         if let Some(lock) = self.init_build.as_ref().unwrap().build_lock {
             if lock == true {
-                return ()
+                return Ok(())
             }
         }
         let invite_path = Path::new(&venue_path).join(&name).to_string_lossy().to_string();
         let build_root_path = Path::new(&invite_path).join(&self.init_build.as_ref().unwrap().build_root)
                                                                     .join("Dockerfile");
-        std::fs::remove_file(build_root_path).unwrap();
+        handle.remove(&build_root_path)
     }
 
     /// Gets the docker-compose files command string.
@@ -216,6 +229,8 @@ impl WeddingInvite {
 mod local_data_tests {
     
     use super::*;
+    use crate::file_handler::MockCoreFileHandle;
+    use mockall::predicate::eq;
 
     #[test]
     fn test_from_file() {
@@ -227,7 +242,7 @@ mod local_data_tests {
         init_builds.insert("x86_64".to_string(), "database/build/Dockerfile.init".to_string());
         init_builds.insert("aarch64".to_string(), "database/build/Dockerfile.init.arch".to_string());
 
-        let ld = WeddingInvite::from_file("./tests/wedding_invite.yml".to_string()).unwrap();
+        let ld = WeddingInvite::from_file("./tests/test_repo/wedding_invite.yml".to_string()).unwrap();
         assert_eq!(ld.build_files, Some(normal_builds));
 
         assert_eq!(ld.build_root, ".");
@@ -242,5 +257,115 @@ mod local_data_tests {
     fn test_from_file_missing() {
         let ld = WeddingInvite::from_file("./tests/wedding_invite_missing.yml".to_string());
         assert!(ld.is_err());
+    }
+
+    #[test]
+    fn test_prepare_build_file() {
+
+        let mut normal_builds = HashMap::new();
+        normal_builds.insert("x86_64".to_string(), "build/Dockerfile.aarch64".to_string());
+        normal_builds.insert("aarch64".to_string(), "build/Dockerfile.aarch64".to_string());
+
+        let mut wedding_invite = WeddingInvite::from_file("./tests/test_repo/wedding_invite.yml".to_string()).unwrap();
+        wedding_invite.build_files = Some(normal_builds);
+
+        let mut mock_handle = MockCoreFileHandle::new();
+        let from_path = Path::new("./tests/test_repo/build/Dockerfile.aarch64");
+        let to_path = Path::new("./tests/test_repo/./Dockerfile");
+
+        mock_handle.expect_copy()
+            .with(eq(from_path), eq(to_path))
+            .returning(|_, _| {
+                Ok(0)
+            });
+        let result = wedding_invite.prepare_build_file(
+            &"./tests".to_string(), &"test_repo".to_string(), 
+            &mock_handle);
+        assert!(result.is_ok());
+        mock_handle.checkpoint(); 
+    }
+
+    #[test]
+    fn test_delete_build_file() {
+        let wedding_invite = WeddingInvite::from_file("./tests/test_repo/wedding_invite.yml".to_string()).unwrap();
+
+        let mut mock_handle = MockCoreFileHandle::new();
+        let to_path = Path::new("./tests/test_repo/./Dockerfile");
+
+        mock_handle.expect_remove()
+            .with(eq(to_path))
+            .returning(|_| {
+                Ok(())
+            });
+        let result = wedding_invite.delete_build_file(
+            &"./tests".to_string(), &"test_repo".to_string(), 
+            &mut mock_handle);
+        assert!(result.is_ok());
+        mock_handle.checkpoint(); 
+    }
+
+    #[test]
+    fn test_prepare_init_build_file() {
+        let mut normal_builds = HashMap::new();
+        normal_builds.insert("x86_64".to_string(), "database/build/Dockerfile.aarch64".to_string());
+        normal_builds.insert("aarch64".to_string(), "database/build/Dockerfile.aarch64".to_string());
+
+        let mut wedding_invite = WeddingInvite::from_file("./tests/test_repo/wedding_invite.yml".to_string()).unwrap();
+        wedding_invite.init_build = Some(InitBuild {
+            build_files: normal_builds,
+            build_root: "database".to_string(),
+            build_lock: None
+        });
+
+        let mut mock_handle = MockCoreFileHandle::new();
+        let from_path = Path::new("./tests/test_repo/database/build/Dockerfile.aarch64");
+        let to_path = Path::new("./tests/test_repo/database/Dockerfile");
+
+        mock_handle.expect_copy()
+            .with(eq(from_path), eq(to_path))
+            .returning(|_, _| {
+                Ok(0)
+            });
+        let result = wedding_invite.prepare_init_build_file(
+            &"./tests/".to_string(), &"test_repo".to_string(), 
+            &mut mock_handle);
+        assert!(result.is_ok());
+        mock_handle.checkpoint(); 
+    }
+
+    #[test]
+    fn test_delete_init_build_file() {
+        let mut normal_builds = HashMap::new();
+        normal_builds.insert("x86_64".to_string(), "database/build/Dockerfile.aarch64".to_string());
+        normal_builds.insert("aarch64".to_string(), "database/build/Dockerfile.aarch64".to_string());
+
+        let mut wedding_invite = WeddingInvite::from_file("./tests/test_repo/wedding_invite.yml".to_string()).unwrap();
+        wedding_invite.init_build = Some(InitBuild {
+            build_files: normal_builds,
+            build_root: "database".to_string(),
+            build_lock: None
+        });
+
+        let mut mock_handle = MockCoreFileHandle::new();
+        let to_path = Path::new("./tests/test_repo/database/Dockerfile");
+
+        mock_handle.expect_remove()
+            .with(eq(to_path))
+            .returning(|_| {
+                Ok(())
+            });
+        let result = wedding_invite.delete_init_build_file(
+            &"./tests/".to_string(), &"test_repo".to_string(), 
+            &mut mock_handle);
+        assert!(result.is_ok());
+        mock_handle.checkpoint(); 
+    }
+
+    #[test]
+    fn test_get_docker_compose_files() {
+        let wedding_invite = WeddingInvite::from_file("./tests/test_repo/wedding_invite.yml".to_string()).unwrap();
+        let docker_compose_files = wedding_invite.get_docker_compose_files(&"./tests/".to_string(), &"test_repo".to_string());
+        let expected_files = "-f ./tests/test_repo/runner_files/base.yml -f ./tests/test_repo/runner_files/database.yml ".to_string();
+        assert_eq!(docker_compose_files, expected_files);
     }
 }

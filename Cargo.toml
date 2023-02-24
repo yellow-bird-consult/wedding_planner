@@ -4,6 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+
+
 [dependencies]
 clap = "2.33"
 serde = { version = "1.0.136", features = ["derive"] }

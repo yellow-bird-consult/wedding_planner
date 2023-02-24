@@ -23,6 +23,7 @@ use std::{env, path::Path};
 
 mod cpu_data;
 mod dependency;
+mod file_handler;
 mod seating_plan;
 mod wedding_invite;
 mod runner;
@@ -62,6 +63,7 @@ fn main() {
         None => "wedding_planner.yml".to_owned()
     };
     let full_file_path = Path::new(&cwd).join(&file_name).as_os_str().to_str().unwrap().to_owned();
+    println!("Running {} with file {}", command, full_file_path);
 
     match command.as_ref() {
 
@@ -106,7 +108,7 @@ fn main() {
                 Ok(runner) => runner.create_venue(),
                 Err(error) => println!("{}", error)
             }
-        }
+        },
         _ => {
             let seating_plan_path = "".to_owned();
             let wedding_invite_path = "".to_owned();
@@ -121,7 +123,7 @@ fn main() {
 mod main_tests {
 
     use assert_cmd::Command;
-    use predicates::prelude::*;
+    // use predicates::prelude::*;
     // use std::fs;
 
     // #[test]

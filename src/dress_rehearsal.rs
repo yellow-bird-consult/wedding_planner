@@ -1,6 +1,8 @@
 //! Runs the seating plan and the wedding invite of the repo running wedding planner.
 use crate::runner::Runner;
 use crate::wedding_invite::WeddingInvite;
+use crate::file_handler::FileHandle;
+use crate::commands::command_runner::{CommandRunner, CoreRunner};
 
 
 /// constructs the ```DressRehearsal``` struct and runs the command passed in.
@@ -11,6 +13,7 @@ use crate::wedding_invite::WeddingInvite;
 /// * `wedding_invite_path` - The path to the wedding invite file
 /// * `working_directory` - The path to the working directory
 pub fn dress_rehearsal_factory(command: String, seating_plan_path: String, wedding_invite_path: String, working_directory: String) {
+    let file_handle = FileHandle{};
 
     let dress_rehearsal = match DressRehearsal::new(seating_plan_path, wedding_invite_path, &working_directory) {
         Ok(dress_rehearsal) => dress_rehearsal,
@@ -22,8 +25,22 @@ pub fn dress_rehearsal_factory(command: String, seating_plan_path: String, weddi
     match command.as_ref() {
 
         "dressbuild" => {
-            dress_rehearsal.wedding_invite.prepare_build_file(&working_directory, &"".to_string());
-            dress_rehearsal.wedding_invite.prepare_init_build_file(&working_directory, &"".to_string());
+            match dress_rehearsal.wedding_invite.prepare_build_file(&working_directory, &"".to_string(), &file_handle) {
+                Ok(_) => {
+                    println!("local wedding invite prepared build")
+                },
+                Err(error) => {
+                    println!("local wedding invite failed to prepare build: {}", error);
+                }
+            };
+            match dress_rehearsal.wedding_invite.prepare_init_build_file(&working_directory, &"".to_string(), &file_handle) {
+                Ok(_) => {
+                    println!("local wedding invite prepared init build")
+                },
+                Err(error) => {
+                    println!("local wedding invite failed to prepare init build: {}", error);
+                }
+            };
             dress_rehearsal.build_dependencies();
         },
         "dressrun" => {
@@ -40,8 +57,22 @@ pub fn dress_rehearsal_factory(command: String, seating_plan_path: String, weddi
         },
         "dressremoteteardown" => {
             dress_rehearsal.teardown_remote_dependencies();
-            dress_rehearsal.wedding_invite.delete_build_file(&working_directory, &"".to_string());
-            dress_rehearsal.wedding_invite.delete_init_build_file(&working_directory, &"".to_string());
+            match dress_rehearsal.wedding_invite.delete_build_file(&working_directory, &"".to_string(), &file_handle){
+                Ok(_) => {
+                    println!("local wedding invite deleted build")
+                },
+                Err(error) => {
+                    println!("local wedding invite failed to delete build: {}", error);
+                }
+            };
+            match dress_rehearsal.wedding_invite.delete_init_build_file(&working_directory, &"".to_string(), &file_handle) {
+                Ok(_) => {
+                    println!("local wedding invite deleted init build")
+                },
+                Err(error) => {
+                    println!("local wedding invite failed to delete init build: {}", error);
+                }
+            };
         },
         "dresssetup" => {
             dress_rehearsal.runner.create_venue();
@@ -104,31 +135,36 @@ impl DressRehearsal {
 
     /// Tears down the dependencies that are running.
     pub fn teardown_dependencies(&self) {
-        let command_string = self.get_compose_file_command(false);
-        self.runner.run_docker_command(" down", "failed to tear down", command_string);
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(false);
+        command_runner.run_docker_command(" down", "failed to tear down", &mut command_string);
     }
 
     /// Tears down the remote dependencies that are running.
     pub fn teardown_remote_dependencies(&self) {
-        let command_string = self.get_compose_file_command(true);
-        self.runner.run_docker_command(" down", "failed to tear down", command_string);
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(true);
+        command_runner.run_docker_command(" down", "failed to tear down", &mut command_string);
     }
 
     /// Builds the dependencies that are needed to run. 
     pub fn build_dependencies(&self) {
-        let command_string = self.get_compose_file_command(false);
-        self.runner.run_docker_command(" build --no-cache", "failed to build", command_string);
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(false);
+        command_runner.run_docker_command(" build --no-cache", "failed to build", &mut command_string);
     }
 
     /// Runs the dependencies defined.
     pub fn run_dependencies(&self) {
-        let command_string = self.get_compose_file_command(false);
-        self.runner.run_docker_command(" up", "failed to run", command_string);
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(false);
+        command_runner.run_docker_command(" up", "failed to tear down", &mut command_string);
     }
 
     /// Runs the remote dependencies defined.
     pub fn run_remote_dependencies(&self) {
-        let command_string = self.get_compose_file_command(true);
-        self.runner.run_docker_command(" up", "failed to run", command_string);
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(true);
+        command_runner.run_docker_command(" up", "failed to tear down", &mut command_string);
     }
 }
