@@ -145,6 +145,10 @@ impl Runner {
     }
 
     /// Tears down the dependencies that are running.
+    /// 
+    /// # Process
+    /// 1. gets all the runner_files in the wedding invites of the dependencies
+    /// 2. runs the docker command to tear down the dependencies
     pub fn teardown_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
@@ -152,13 +156,21 @@ impl Runner {
     }
 
     /// Tears down the remote dependencies that are running.
+    /// 
+    /// # Process
+    /// 1. gets all the remote_runner_files in the wedding invites of the dependencies
+    /// 2. runs the docker command to tear down the dependencies
     pub fn teardown_remote_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(true);
         command_runner.run_docker_command(" down", "failed to tear down", &mut command_string);
     }
 
-    /// Builds the dependencies that are needed to run. 
+    /// Builds the dependencies that are needed to run.
+    /// 
+    /// # Process
+    /// 1. gets all the runner_files in the wedding invites of the dependencies
+    /// 2. runs the docker command to build the dependencies
     pub fn build_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
@@ -166,6 +178,10 @@ impl Runner {
     }
 
     /// Runs the dependencies defined.
+    /// 
+    /// # Process
+    /// 1. gets all the runner_files in the wedding invites of the dependencies
+    /// 2. runs the docker command to run the dependencies
     pub fn run_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
@@ -173,6 +189,10 @@ impl Runner {
     }
 
     /// Runs the dependencies defined in the background.
+    /// 
+    /// # Process
+    /// 1. gets all the runner_files in the wedding invites of the dependencies
+    /// 2. runs the docker command to run the dependencies in the background
     pub fn run_dependencies_background(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
@@ -180,6 +200,10 @@ impl Runner {
     }
 
     /// Runs the remote dependencies defined.
+    /// 
+    /// # Process
+    /// 1. gets all the remote_runner_files in the wedding invites of the dependencies
+    /// 2. runs the docker command to run the dependencies
     pub fn run_remote_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(true);
@@ -187,6 +211,10 @@ impl Runner {
     }
 
     /// Runs the remote dependencies defined in the background.
+    /// 
+    /// # Process
+    /// 1. gets all the remote_runner_files in the wedding invites of the dependencies
+    /// 2. runs the docker command to run the dependencies in the background
     pub fn run_remote_dependencies_background(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(true);

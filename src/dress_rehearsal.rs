@@ -183,6 +183,10 @@ impl DressRehearsal {
     }
 
     /// Tears down the dependencies that are running.
+    /// 
+    /// # Process
+    /// 1. Gets all the runner_files from the local wedding invite and the runner_files from the wedding_invite of each dependency
+    /// 2. Runs the docker-compose down command for each file
     pub fn teardown_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
@@ -190,6 +194,10 @@ impl DressRehearsal {
     }
 
     /// Tears down the remote dependencies that are running.
+    /// 
+    /// # Process
+    /// 1. Gets all the runner_files from the local wedding invite and the remote_runner_files from the wedding_invite of each dependency
+    /// 2. Runs the docker-compose down command for each file
     pub fn teardown_remote_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(true);
@@ -197,6 +205,10 @@ impl DressRehearsal {
     }
 
     /// Builds the dependencies that are needed to run. 
+    /// 
+    /// # Process
+    /// 1. Gets all the runner_files from the local wedding invite and the runner_files from the wedding_invite of each dependency
+    /// 2. Runs the docker-compose build command for each file
     pub fn build_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
@@ -204,6 +216,10 @@ impl DressRehearsal {
     }
 
     /// Builds the remote dependencies.
+    /// 
+    /// # Process
+    /// 1. Gets all the runner_files from the local wedding invite and the remote_runner_files from the wedding_invite of each dependency
+    /// 2. Runs the docker-compose build command for each file
     pub fn build_remote_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(true);
@@ -211,6 +227,10 @@ impl DressRehearsal {
     }
 
     /// Runs the dependencies defined.
+    /// 
+    /// # Process
+    /// 1. Gets all the runner_files from the local wedding invite and the runner_files from the wedding_invite of each dependency
+    /// 2. Runs the docker-compose up command for each file
     pub fn run_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
@@ -218,6 +238,10 @@ impl DressRehearsal {
     }
 
     /// Runs the dependencies defined in the background.
+    /// 
+    /// # Process
+    /// 1. Gets all the runner_files from the local wedding invite and the runner_files from the wedding_invite of each dependency
+    /// 2. Runs the docker-compose up -d command for each file
     pub fn run_dependencies_background(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
@@ -225,6 +249,10 @@ impl DressRehearsal {
     }
 
     /// Runs the remote dependencies defined.
+    /// 
+    /// # Process
+    /// 1. Gets all the runner_files from the local wedding invite and the remote_runner_files from the wedding_invite of each dependency
+    /// 2. Runs the docker-compose up command for each file
     pub fn run_remote_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(true);
@@ -232,6 +260,10 @@ impl DressRehearsal {
     }
 
     /// Runs the remote dependencies defined in the background.
+    /// 
+    /// # Process
+    /// 1. Gets all the runner_files from the local wedding invite and the remote_runner_files from the wedding_invite of each dependency
+    /// 2. Runs the docker-compose up -d command for each file
     pub fn run_remote_dependencies_background(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(true);
@@ -239,6 +271,10 @@ impl DressRehearsal {
     }
 
     /// Runs the dependencies defined in dev mode.
+    /// 
+    /// # Process
+    /// 1. Gets all the dev_runner_files from the local wedding invite and the runner_files from the wedding_invite of each dependency
+    /// 2. Runs the docker-compose up command for each file
     pub fn run_dev_dependencies(&self) {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command_dev();
