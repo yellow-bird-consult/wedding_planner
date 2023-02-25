@@ -56,6 +56,7 @@ pub struct TestBuild {
 /// * `runner_files` - The location of the docker-compose files to run the build
 /// * `remote_runner_files` - The location of the docker-compose files to run the build from a remote dockerhub repository
 /// * `build_lock` - Whether to lock the build to a specific CPU architecture, if ```true``` the CPU will not be checked and the Dockerfile will not be moved
+/// * `dev_runner_files` - The location of the docker-compose files to run the build in development mode
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct WeddingInvite {
     pub build_files: Option<HashMap<String, String>>,
@@ -64,6 +65,7 @@ pub struct WeddingInvite {
     pub runner_files: Vec<String>,
     pub remote_runner_files: Option<Vec<String>>,
     pub build_lock: Option<bool>,
+    pub dev_runner_files: Option<Vec<String>>,
 }
 
 
@@ -77,13 +79,13 @@ impl WeddingInvite {
     /// # Returns
     /// * `Result<WeddingInvite, String>` - A WeddingInvite struct or an error message
     pub fn from_file(path: String) -> Result<Self, String> {
-        let file = match File::open(path) {
+        let file = match File::open(&path) {
             Ok(f) => f,
-            Err(e) => return Err(format!("Could not open file: {}", e))
+            Err(e) => return Err(format!("Could not open file: {} for {}", e, path))
         };
         let invite_data: WeddingInvite = match serde_yaml::from_reader(file) {
             Ok(ld) => ld,
-            Err(e) => return Err(format!("Could not read values: {}", e))
+            Err(e) => return Err(format!("Could not read values: {} for {}", e, path))
         };
         Ok(invite_data)
     }
