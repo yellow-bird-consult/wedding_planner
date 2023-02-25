@@ -43,6 +43,25 @@ pub fn dress_rehearsal_factory(command: String, seating_plan_path: String, weddi
             };
             dress_rehearsal.build_dependencies();
         },
+        "dressremotebuild" => {
+            match dress_rehearsal.wedding_invite.prepare_build_file(&working_directory, &"".to_string(), &file_handle) {
+                Ok(_) => {
+                    println!("local wedding invite prepared build")
+                },
+                Err(error) => {
+                    println!("local wedding invite failed to prepare build: {}", error);
+                }
+            };
+            match dress_rehearsal.wedding_invite.prepare_init_build_file(&working_directory, &"".to_string(), &file_handle) {
+                Ok(_) => {
+                    println!("local wedding invite prepared init build")
+                },
+                Err(error) => {
+                    println!("local wedding invite failed to prepare init build: {}", error);
+                }
+            };
+            dress_rehearsal.build_remote_dependencies();
+        },
         "dressrun" => {
             dress_rehearsal.run_dependencies();
         },
@@ -114,6 +133,9 @@ impl DressRehearsal {
     /// * `seating_plan_path` - The path to the seating plan file for the repo running wedding planner
     /// * `wedding_invite_path` - The path to the wedding invite file for the repo running wedding planner
     /// * `working_directory` - The working directory of the repo running local invite docker files
+    /// 
+    /// # Returns
+    /// * `Result<DressRehearsal, String>` - The DressRehearsal struct or an error message
     pub fn new(seating_plan_path: String, wedding_invite_path: String, working_directory: &String) -> Result<DressRehearsal, String> {
         let runner = match Runner::new(seating_plan_path){
             Ok(runner) => runner,
@@ -179,6 +201,13 @@ impl DressRehearsal {
         let command_runner = CommandRunner {};
         let mut command_string = self.get_compose_file_command(false);
         command_runner.run_docker_command(" build --no-cache", "failed to build", &mut command_string);
+    }
+
+    /// Builds the remote dependencies.
+    pub fn build_remote_dependencies(&self) {
+        let command_runner = CommandRunner {};
+        let mut command_string = self.get_compose_file_command(true);
+        command_runner.run_docker_command(" build --no-cache", "failed to build remote dependencies", &mut command_string);
     }
 
     /// Runs the dependencies defined.
